@@ -32,3 +32,12 @@ export interface PickingItemRow {
   個数: number;
   単品換算数: number;
 }
+
+export interface InventoryItem {
+  productName: string;
+  asin: string;
+  jan: string;
+  quantity: number;
+  salesCount: number;
+  updatedQuantity: number;
+}

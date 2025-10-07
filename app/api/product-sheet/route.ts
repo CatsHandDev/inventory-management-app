@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
 // どのシートからデータを取得するかを定義
-// NOTE: 複数のシートや広範囲を一度に読み込むとパフォーマンスに影響する可能性があります
-const SHEET_RANGE = '出品管理!A:R'; // ピッキングリストの仕様からR列(17)までが必要
+// ピッキングリストの仕様からR列(index 17)までが必要
+const SHEET_RANGE = '出品管理!A:R';
 
 export async function GET() {
   try {
-    const spreadsheetId = process.env.INVENTORY_SHEET_ID as string; // 在庫管理シートIDを使用
+    const spreadsheetId = process.env.PRODUCT_SHEET_ID as string; // 商品台帳シートIDを使用
     
-    // 認証ロジック (読み取り専用でOK)
+    // 認証ロジック
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -20,11 +20,12 @@ export async function GET() {
 
     const sheets = google.sheets({ version: 'v4', auth });
 
-    const response = await sheets.spreadsheets.get({ spreadsheetId });
-    // メタデータからシート名だけを抽出して配列にする
-    const sheetNames = response.data.sheets?.map(sheet => sheet.properties?.title || '') || [];
-    // JSONとして返す
-    return NextResponse.json({ sheetNames });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: SHEET_RANGE,
+    });
+
+    return NextResponse.json({ values: response.data.values || [] });
   } catch (err) {
     const error = err as Error;
     console.error('Product Sheet API Error:', error.message);

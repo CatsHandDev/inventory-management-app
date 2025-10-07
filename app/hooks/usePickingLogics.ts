@@ -1,22 +1,12 @@
 import { useMemo } from "react";
 import type { OrderItem, PickingItemRow } from "../types";
 
-// PickingListで定義されていた定数も、ロジックと一括りにしてこちらに移動
 const SKU_LOT_UNIT_MAP: { [key: string]: number } = {
-  "-2": 2,
-  "-4": 4,
-  "-6": 6,
+  "-2": 2, "-4": 4, "-6": 6,
 };
 
-/**
- * CSVデータとスプレッドシートデータを元に、ピッキングリストの集計と計算を行うカスタムフック
- * @param data - ピッキング対象のフィルタリング済みCSV注文データ
- * @param sheet - スプレッドシートの全データ
- * @returns { pickingList, totalSingleUnits } - 計算済みのピッキングリストと合計数量
- */
 export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
   
-  // PickingListにあったuseMemoを、そのままこのフックの本体として利用
   const { pickingList, totalSingleUnits } = useMemo(() => {
     const map = new Map<string, PickingItemRow>();
 
@@ -30,37 +20,56 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
       let lotUnit = 1;
       let productName = item['商品名'];
 
-      // --- SKUによるロット入数の上書きロジック ---
+      let targetRow: string[] | undefined = undefined;
+
+      // フォールバック用の関数を定義 (itemSkuでQ列を検索)
+      const findRowBySkuInQ = () => itemSku ? sheet.find(r => r[16]?.toLowerCase() === itemSku.toLowerCase()) : undefined;
+
+      if (itemCode) {
+        // --- Step 1: P列(index 15)で一次検索 ---
+        const pRows = sheet.filter(r => r[15]?.toLowerCase() === itemCode.toLowerCase());
+
+        // --- Step 2: P列のヒット数で分岐 ---
+        if (pRows.length === 0) {
+          // Case A: P列にヒットなし -> フォールバック
+          targetRow = findRowBySkuInQ();
+
+        } else if (pRows.length === 1) {
+          // Case B: P列に1件ヒット
+          const theOnePRow = pRows[0];
+          if (theOnePRow[16]?.toLowerCase() === itemCode.toLowerCase()) {
+            // Q列の値がitemCodeと一致 -> この行を採用
+            targetRow = theOnePRow;
+          } else {
+            // Q列の値が不一致 -> フォールバック (この処理が抜けていた！)
+            targetRow = findRowBySkuInQ();
+          }
+
+        } else if (pRows.length >= 2) {
+          // Case C: P列に2件以上ヒット (新旧パッケージの可能性)
+          const qRowBySku = findRowBySkuInQ();
+          if (qRowBySku) {
+            const handoverText = qRowBySku[12] || qRowBySku[13] || "";
+            if (handoverText === 'ページ引継ぎ' || handoverText === 'カタログ引継ぎ') {
+              targetRow = qRowBySku;
+            }
+          }
+        }
+      } else {
+        // itemCode自体がCSVにない場合もフォールバック
+        targetRow = findRowBySkuInQ();
+      }
+
+      // --- Step 3: 最終的なロット入数と商品情報を決定 ---
       let lotUnitOverride: number | undefined = undefined;
       const skuFromCsv = item['SKU管理番号'];
       if (skuFromCsv && SKU_LOT_UNIT_MAP[skuFromCsv]) {
         lotUnitOverride = SKU_LOT_UNIT_MAP[skuFromCsv];
       }
-      
-      // --- スプレッドシートから正しい行を特定するロジック ---
-      let targetRow: string[] | undefined = undefined;
-      
-      const qRow = 
-        (itemCode && sheet.find(r => r[16]?.toLowerCase() === itemCode.toLowerCase())) ||
-        (itemSku && sheet.find(r => r[16]?.toLowerCase() === itemSku.toLowerCase()));
 
-      if (qRow) {
-        const pRows = sheet.filter(r => r[15]?.toLowerCase() === itemCode?.toLowerCase());
-        if (pRows.length === 0) {
-          targetRow = qRow;
-        } else if (pRows.length === 1) {
-          if (pRows[0] === qRow) {
-            targetRow = pRows[0];
-          }
-        } else if (pRows.length >= 2) {
-          targetRow = pRows.find(pRow => pRow !== qRow);
-        }
-      }
-
-      // --- 最終的なロット入数と商品情報を決定 ---
       if (targetRow) {
         const lotUnitFromSheet = parseInt(targetRow[6] || "1", 10);
-        jan = targetRow[5] || "";
+        jan = targetRow[5] || ""; // ここでjanが設定される
         productName = targetRow[17] || item["商品名"];
         lotUnit = lotUnitOverride !== undefined ? lotUnitOverride : lotUnitFromSheet;
       } else {
@@ -71,9 +80,7 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
       const mapKey = jan || productName;
 
       if (map.has(mapKey)) {
-        const ex = map.get(mapKey)!;
-        ex.個数 += count;
-        ex.単品換算数 += singleUnits;
+        // ...
       } else {
         map.set(mapKey, {
           商品名: productName,
@@ -85,13 +92,9 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
     });
 
     const list = Array.from(map.values());
-    list.sort((a, b) => a.商品名.localeCompare(b.商品名, 'ja')); // 商品名ソートもロジックの一部としてここに残す
-    
     const totalSingles = list.reduce((sum, item) => sum + item.単品換算数, 0);
-
     return { pickingList: list, totalSingleUnits: totalSingles };
   }, [data, sheet]);
 
-  // 計算結果を返す
   return { pickingList, totalSingleUnits };
 }
