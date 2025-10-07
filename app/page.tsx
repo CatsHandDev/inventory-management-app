@@ -25,7 +25,7 @@ function useInventorySheetNames() {
 // 商品台帳データを取得
 function useProductSheet(): { productSheet: string[][]; isLoading: boolean } {
   const [productSheet, setProductSheet] = useState<string[][]>([]);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
@@ -41,7 +41,7 @@ function useProductSheet(): { productSheet: string[][]; isLoading: boolean } {
         setIsLoading(false);
       });
   }, []);
-  
+
   return { productSheet, isLoading };
 }
 
@@ -63,12 +63,6 @@ export default function InventoryPage() {
   // ピッキングロジックを再利用して販売個数を計算
   const { pickingList: salesData } = usePickingLogic(csvData, productSheet);
 
-  useEffect(() => {
-    if (salesData.length > 0) {
-      console.log("【デバッグ】salesDataが更新されました:", salesData);
-    }
-  }, [salesData]);
-
   // --- データ読み込み ---
   useEffect(() => {
     if (selectedSheet) {
@@ -86,7 +80,7 @@ export default function InventoryPage() {
     const salesMap = new Map<string, number>();
     salesData.forEach(sale => {
       // `.trim()` を使って前後の空白を削除
-      const cleanJan = sale.JANコード?.trim(); 
+      const cleanJan = sale.JANコード?.trim();
       if (cleanJan && sale.単品換算数 > 0) {
         salesMap.set(cleanJan, sale.単品換算数);
       }
@@ -96,18 +90,18 @@ export default function InventoryPage() {
     if (salesMap.size > 0) {
         console.log("【デバッグ】生成された salesMap (キー: JAN):", salesMap);
     }
-    
+
     return inventoryData.slice(1).map(row => {
       // こちらも `.trim()` を使って空白を削除
-      const jan = row[5]?.trim() || ''; 
+      const jan = row[5]?.trim() || '';
       const currentQuantity = parseInt(row[6], 10) || 0;
-      
+
       const salesCount = salesMap.get(jan) || 0;
 
       if (salesCount > 0) {
           console.log(`【デバッグ】マッチ成功！ 在庫JAN: "${jan}", 販売数: ${salesCount}`);
       }
-      
+
       return {
         productName: row[0] || '',
         asin:        row[4] || '',
@@ -118,7 +112,7 @@ export default function InventoryPage() {
       };
     });
   }, [inventoryData, salesData]);
-  
+
   /** ユーザーがファイルを選択したときに呼ばれる */
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -147,7 +141,7 @@ export default function InventoryPage() {
       complete: (results) => {
         setCsvData(results.data as OrderItem[]);
         // alert(`${results.data.length}件の注文データを読み込み、集計しました。\n「在庫更新 & 確認」タブに移動して結果を確認してください。`);
-        setActiveTab('manage'); // 自動でタブを切り替える
+        // setActiveTab('manage'); // 自動でタブを切り替える
       },
       error: (error) => {
         console.error('Error parsing CSV:', error);
@@ -198,7 +192,7 @@ export default function InventoryPage() {
 
       // 更新範囲 (例: 'シート名!K5:M5')
       const range = `${selectedSheet}!${String.fromCharCode(65 + timeColIndex + 2)}${sheetRowNumber}:${String.fromCharCode(65 + managerColIndex + 2)}${sheetRowNumber}`;
-      
+
       const values = [[time, item.updatedQuantity, manager]];
 
       return fetch('/api/inventory-write', {
@@ -270,6 +264,7 @@ export default function InventoryPage() {
                     <thead>
                       <tr>
                         <th>商品名</th>
+                        <th>ASIN</th>
                         <th>JAN</th>
                         <th>販売個数 (単品換算)</th>
                       </tr>
@@ -278,6 +273,7 @@ export default function InventoryPage() {
                       {salesData.map((item, index) => (
                         <tr key={`${item.JANコード}-${index}`}>
                           <td>{item.商品名}</td>
+                          <td>{item.asin}</td>
                           <td>{item.JANコード}</td>
                           <td style={{ textAlign: 'center' }}>{item.単品換算数}</td>
                         </tr>

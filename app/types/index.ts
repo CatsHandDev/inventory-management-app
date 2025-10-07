@@ -27,6 +27,7 @@ export interface PickingItem {
 }
 
 export interface PickingItemRow {
+  asin: string;
   商品名: string;
   JANコード: string;
   個数: number;

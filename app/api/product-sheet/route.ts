@@ -3,12 +3,12 @@ import { google } from 'googleapis';
 
 // どのシートからデータを取得するかを定義
 // ピッキングリストの仕様からR列(index 17)までが必要
-const SHEET_RANGE = '出品管理!A:R';
+const SHEET_RANGE = process.env.PRODUCT_SHEET_RANGE;
 
 export async function GET() {
   try {
     const spreadsheetId = process.env.PRODUCT_SHEET_ID as string; // 商品台帳シートIDを使用
-    
+
     // 認証ロジック
     const auth = new google.auth.GoogleAuth({
       credentials: {

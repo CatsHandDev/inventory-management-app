@@ -6,7 +6,6 @@ const SKU_LOT_UNIT_MAP: { [key: string]: number } = {
 };
 
 export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
-  
   const { pickingList, totalSingleUnits } = useMemo(() => {
     const map = new Map<string, PickingItemRow>();
 
@@ -16,6 +15,7 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
       const count = parseInt(item["個数"], 10) || 0;
       if (count === 0) return;
 
+      let asin = "";
       let jan = "";
       let lotUnit = 1;
       let productName = item['商品名'];
@@ -41,7 +41,7 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
             // Q列の値がitemCodeと一致 -> この行を採用
             targetRow = theOnePRow;
           } else {
-            // Q列の値が不一致 -> フォールバック (この処理が抜けていた！)
+            // Q列の値が不一致 -> フォールバック
             targetRow = findRowBySkuInQ();
           }
 
@@ -49,10 +49,10 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
           // Case C: P列に2件以上ヒット (新旧パッケージの可能性)
           const qRowBySku = findRowBySkuInQ();
           if (qRowBySku) {
-            const handoverText = qRowBySku[12] || qRowBySku[13] || "";
-            if (handoverText === 'ページ引継ぎ' || handoverText === 'カタログ引継ぎ') {
+            // const handoverText = qRowBySku[12] || qRowBySku[13] || "";
+            // if (handoverText === 'ページ引継ぎ' || handoverText === 'カタログ引継ぎ') {
               targetRow = qRowBySku;
-            }
+            // }
           }
         }
       } else {
@@ -68,6 +68,7 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
       }
 
       if (targetRow) {
+        asin = targetRow[4] || "";
         const lotUnitFromSheet = parseInt(targetRow[6] || "1", 10);
         jan = targetRow[5] || ""; // ここでjanが設定される
         productName = targetRow[17] || item["商品名"];
@@ -75,14 +76,15 @@ export function usePickingLogic(data: OrderItem[], sheet: string[][]) {
       } else {
         lotUnit = lotUnitOverride !== undefined ? lotUnitOverride : 1;
       }
-      
+
       const singleUnits = lotUnit * count;
-      const mapKey = jan || productName;
+      const mapKey = jan || asin || productName;
 
       if (map.has(mapKey)) {
         // ...
       } else {
         map.set(mapKey, {
+          asin: asin,
           商品名: productName,
           JANコード: jan,
           個数: count,

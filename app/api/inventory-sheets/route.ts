@@ -8,7 +8,7 @@ const SHEET_RANGE = '出品管理!A:R'; // ピッキングリストの仕様か�
 export async function GET() {
   try {
     const spreadsheetId = process.env.INVENTORY_SHEET_ID as string; // 在庫管理シートIDを使用
-    
+
     // 認証ロジック (読み取り専用でOK)
     const auth = new google.auth.GoogleAuth({
       credentials: {
