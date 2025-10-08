@@ -1,0 +1,23 @@
+.salesContainer {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  margin-top: 2rem;
+}
+
+.salesContainer table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.salesContainer th,
+.salesContainer td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d0d7de;
+  text-align: left;
+}
+
+.salesContainer thead {
+  background-color: #f6f8fa;
+}

@@ -1,6 +1,5 @@
 .main {
   padding: 2rem;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .header {
@@ -15,90 +14,7 @@
   font-weight: 400;
 }
 
-.settingsPanel {
-  background-color: #f6f8fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #d0d7de;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.settingsPanel select,
-.settingsPanel input {
-  padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-}
-
-.settingsPanel button {
-  background-color: #2c974b;
-  color: white;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.settingsPanel button:hover {
-  background-color: #288c45;
-}
-
-.listContainer {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #d0d7de;
-  overflow-x: auto; /* 横スクロールを可能に */
-}
-
-.listContainer table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.listContainer th,
-.listContainer td {
-  padding: 0.75rem 1rem;
-  border: 1px solid #d0d7de;
-  text-align: left;
-  white-space: nowrap; /* セル内での改行を防ぐ */
-}
-
-.listContainer thead {
-  background-color: #f6f8fa;
-}
-
-.salesContainer {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #d0d7de;
-  margin-bottom: 2rem;
-}
-
-.salesContainer table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.salesContainer th,
-.salesContainer td {
-  padding: 0.75rem 1rem;
-  border: 1px solid #d0d7de;
-  text-align: left;
-}
-
-.salesContainer thead {
-  background-color: #f6f8fa;
-}
-
+/* タブナビゲーションのコンテナ */
 .navContainer {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid #d0d7de;
@@ -109,11 +25,11 @@
   gap: 8px;
 }
 
-/* タブボタンの基本スタイル */
+/* タブボタンのスタイル */
 .navTabs button {
   background-color: transparent;
   border: none;
-  border-bottom: 2px solid transparent; /* 非アクティブ時の下線を透明に */
+  border-bottom: 2px solid transparent;
   border-radius: 6px 6px 0 0;
   padding: 12px 18px;
   font-size: 1rem;
@@ -124,28 +40,25 @@
   transition: color 0.2s ease-in-out;
 }
 
-/* ホバー時のスタイル */
 .navTabs button:not(:disabled):hover {
   background-color: #f6f8fa;
   color: #24292f;
 }
 
-/* アクティブなタブのスタイル (:disabled を活用) */
 .navTabs button:disabled {
   color: #24292f;
   font-weight: 600;
   cursor: default;
 }
 
-/* アクティブインジケーター（下線） */
 .navTabs button::after {
   content: '';
   position: absolute;
-  bottom: -1px; /* コンテナのborderと重なるように */
+  bottom: -1px;
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: #0969da; /* 青系のアクセントカラー */
+  background-color: #0969da;
   transform: scaleX(0);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -154,7 +67,6 @@
   transform: scaleX(1);
 }
 
-/* コンテンツパネルの上のマージン */
 .contentPanel {
   padding-top: 1rem;
 }
